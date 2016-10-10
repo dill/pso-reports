@@ -33,7 +33,9 @@ parse_detections <- function(filename){
   strpped <- str_replace_all(tbl_dat, " ", "")
 
   # remove stuff before the title
-  drop_ind <- which(str_detect(strpped, "RPSPROTECTEDSPECIESRECORDINGFORM"))
+  drop_ind <- which(str_detect(strpped,
+                               regex("RPSPROTECTEDSPECIESRECORDINGFORM",
+                                     ignore_case=TRUE)))
   tbl_dat <- tbl_dat[(drop_ind+1):length(tbl_dat)]
 
   ## first page of detections starts with "DETECTION  Date" get rid of that
@@ -100,7 +102,7 @@ parse_detections <- function(filename){
 
   catted <- paste0(catted, collapse="")
   catted <- str_replace(catted, "DETECTION", "")
-
+  catted_save <- catted
 
   # str_replace_all fails me here, so this is goofy...
   for(bit in bits){
@@ -142,18 +144,23 @@ parse_detections <- function(filename){
             "DistanceDuringSoftStart(m)Last",
             bits[(whbits+1):length(bits)])
 
+  # sometimes the description field gets missed out?
+  if(!str_detect(catted_save, "Description(includefeaturessuchasoverallsize;shapeofhead;colourandpattern;size,shape,andpositionofdorsalfin;height,direction,andshapeofblow;etc.)")){
+    ind <- which(bits=="Description(includefeaturessuchasoverallsize;shapeofhead;colourandpattern;size,shape,andpositionofdorsalfin;height,direction,andshapeofblow;etc.)")
+    catted <- c(catted[1:(ind-1)], NA, catted[ind:length(catted)])
+  }
 
   names(catted) <- bits
 
   return(catted)
 }
 
-#ll <- lapply(list.files("pages", "*.pdf", full.names=TRUE), parse_detections)
+ll <- lapply(list.files("pages", "*.pdf", full.names=TRUE), parse_detections)
 
-for(ff in list.files("pages", "*.pdf", full.names=TRUE)){
-  cat(ff, "\n")
-  ll <- parse_detections(ff)
-}
+#for(ff in list.files("pages", "*.pdf", full.names=TRUE)){
+#  cat(ff, "\n")
+#  ll <- parse_detections(ff)
+#}
 
 
 
