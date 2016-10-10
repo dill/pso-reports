@@ -110,6 +110,8 @@ parse_detections <- function(filename){
   # split it
   catted <- unlist(str_split(catted, "--SPLIT--"))
 
+  # check that the "n/a" didn't get bundled into the wrong field
+  # fields can't have both an entry and an n/a (surely?!)
   ct2 <- c()
   for(ii in seq_along(catted)){
     if(str_detect(catted[ii], "n/a") & !str_detect(catted[ii], "^n/a$")){
@@ -131,6 +133,8 @@ parse_detections <- function(filename){
   catted <- str_replace_all(catted, "n/a", "NA")
   #catted <- str_replace_all(catted, "", "NA")
 
+  # expand out the distance firstclosestlast thing, as it always gets
+  # concatenated
   whbits <- which(bits == "FirstClosestLast")
   bits <- c(bits[1:(whbits-2)],
             "DistanceDuringSoftStart(m)First",
