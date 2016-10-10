@@ -155,6 +155,8 @@ parse_detections <- function(filename){
   return(catted)
 }
 
+library(plyr)
+#ll <- adply(list.files("pages", "*.pdf", full.names=TRUE), 1, parse_detections)
 ll <- lapply(list.files("pages", "*.pdf", full.names=TRUE), parse_detections)
 
 #for(ff in list.files("pages", "*.pdf", full.names=TRUE)){
