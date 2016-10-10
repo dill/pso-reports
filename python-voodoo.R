@@ -1,10 +1,16 @@
-### what about using python???
+### take the "data" in the PDF reports https://www.data.bsee.gov/homepg/data_center/other/WebStore/pilist.asp?appid=5 and make then into "real" data
 
 library(rPython)
 library(stringr)
 
+# need to install the tika library in Python
+#   pip install --user tika
+# should do that
 
-#filename <- "4369-7.pdf"
+# need to split PDFs into pages
+
+# at the moment this only decodes the "DETECTION" pages, not effort
+## ./splitr 4369.pdf
 
 
 parse_detections <- function(filename){
@@ -104,21 +110,46 @@ parse_detections <- function(filename){
   # split it
   catted <- unlist(str_split(catted, "--SPLIT--"))
 
+  ct2 <- c()
+  for(ii in seq_along(catted)){
+    if(str_detect(catted[ii], "n/a") & !str_detect(catted[ii], "^n/a$")){
+      repl <- catted[ii]
+      repl <- str_replace(repl, "n/a", " n/a ")
+      repl <- str_replace(repl, "\\s+", " ")
+      repl <- str_trim(repl)
+      repl <- unlist(str_split(repl, " "))
+      ct2 <- c(ct2, repl)
+    }else{
+      ct2 <- c(ct2, catted[ii])
+    }
+  }
+
   # dispose of first entry
-  catted <- catted[-1]
+  catted <- ct2[-1]
 
   # replace "n/a" with NA
   catted <- str_replace_all(catted, "n/a", "NA")
   #catted <- str_replace_all(catted, "", "NA")
+
+  whbits <- which(bits == "FirstClosestLast")
+  bits <- c(bits[1:(whbits-2)],
+            "DistanceDuringSoftStart(m)First",
+            "DistanceDuringSoftStart(m)Closest",
+            "DistanceDuringSoftStart(m)Last",
+            bits[(whbits+1):length(bits)])
+
 
   names(catted) <- bits
 
   return(catted)
 }
 
-## ./splitr 4369.pdf
-aa <- list()
-aa[[1]] <- parse_detections("pages/4369-6.pdf")
-aa[[2]] <- parse_detections("pages/4369-7.pdf")
-aa[[3]] <- parse_detections("pages/4369-8.pdf")
+#ll <- lapply(list.files("pages", "*.pdf", full.names=TRUE), parse_detections)
+
+for(ff in list.files("pages", "*.pdf", full.names=TRUE)){
+  cat(ff, "\n")
+  ll <- parse_detections(ff)
+}
+
+
 
